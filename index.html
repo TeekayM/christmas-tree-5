@@ -4,9 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Christmas Memory Tree 2025</title>
+<link rel="icon" href="favicon.ico" />
+<link rel="shortcut icon" href="favicon.ico" />
+
+<link rel="icon" href="/favicon.ico" type="image/x-icon" />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
 
 <script>
-  fetch("song.mp3").then(r => console.log("Song loaded:", r.ok)).catch(e => console.log("Fetch error:", e));
+  fetch("song.wav").then(r => console.log("Song loaded:", r.ok)).catch(e => console.log("Fetch error:", e));
 </script>
 <style>
   body {
@@ -115,6 +120,27 @@
   .log-entry { padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.04); }
   .log-entry:last-child { border-bottom: none; }
   .log-date { color: #ffd700; font-weight: 600; margin-right: 8px; }
+
+  #playMusicBtn {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(180deg,#ffd700,#e0a800);
+    color: #0b2310;
+    border: none;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    cursor: pointer;
+    z-index: 11000;
+    pointer-events: auto; 
+  }
+  #playMusicBtn.hidden { display: none; }
 </style>
 </head>
 <body>
@@ -135,9 +161,10 @@
     </div>
   </div>
 
-  <audio id="bgAudio" autoplay hidden loop>
-    <source src="https://teekaym.github.io/christmas-tree-5/song.mp3" type="audio/mp3">
+  <audio id="bgAudio" autoplay loop playsinline preload="auto">
+    <source src="./song.wav" type="audio/wav">
   </audio>
+  <button id="playMusicBtn" class="hidden" aria-label="Play music" title="Play music">▶</button>
 </div>
 
 <!-- orn:
@@ -204,6 +231,45 @@
     requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
+})();
+</script>
+
+<script>
+(function(){
+  const audio = document.getElementById('bgAudio');
+  const btn = document.getElementById('playMusicBtn');
+  if(!audio) return;
+
+  function showButton(){
+    if(btn) btn.classList.remove('hidden');
+  }
+
+  audio.play().then(()=>{
+    if(btn) btn.classList.add('hidden');
+  }).catch(err=>{
+
+    console.log('Autoplay blocked or failed:', err);
+    showButton();
+  });
+
+  function userGesture(){
+    if(audio.paused){
+      audio.play().catch(()=>{});
+    }
+    if(audio.muted) audio.muted = false;
+    if(btn) btn.classList.add('hidden');
+    document.removeEventListener('pointerdown', userGesture);
+  }
+  document.addEventListener('pointerdown', userGesture);
+
+  if(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      if(audio.paused) audio.play().catch(()=>{});
+      if(audio.muted) audio.muted = false;
+      btn.classList.add('hidden');
+    });
+  }
 })();
 </script>
 
