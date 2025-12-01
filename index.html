@@ -28,19 +28,18 @@
   }
   #treeArea {
     position: relative;
-    height: min(82vh, 900px);
-    border-radius: 6px;
+    display: inline-block;
+    width: fit-content;
+    height: auto;
+    border-radius: 0px;
     overflow: hidden;
     background: linear-gradient(180deg, rgba(2,20,10,0.6), rgba(0,0,0,0.25));
     border: 2px solid #b8860b;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 12px;
+    margin: 12px auto 0 auto;
   }
   #treeImage {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 96vw;
+    max-height: 82vh;
     height: auto;
     width: auto;
     object-fit: contain;
@@ -119,7 +118,7 @@
   .log-list { list-style: none; padding: 0; margin: 0; }
   .log-entry { padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.04); }
   .log-entry:last-child { border-bottom: none; }
-  .log-date { color: #ffd700; font-weight: 600; margin-right: 8px; }
+  .log-date { color: #ffd700; font-weight: 600; margin-right: 4px; }
 
   #playMusicBtn {
     position: fixed;
@@ -151,12 +150,17 @@
   <div class="mainRow">
     <div id="treeArea">
       <img id="treeImage" src="tree.png" alt="Christmas Tree" />
+
+      <div class="ornament" style="left: 22%; top: 78%; width: 17%; height: 17%;">
+        <img src="./ornaments/1.png" alt="Ornament 1" />
+      </div>
     </div>
 
     <div id="activityLog" aria-live="polite">
       <h2>Activity Log</h2>
       <ul class="log-list">
-        <li class="log-entry"><span class="log-date">1/12/2025 01:15 AM</span> - The Christmas tree is here!</li>
+        <li class="log-entry"><span class="log-date">1/12/2025 4:10 PM</span> -  Me petting my cat on the #chrismtas-tree-5</li>
+        <li class="log-entry"><span class="log-date">1/12/2025 1:15 AM</span> -  The Christmas tree is here!</li>
       </ul>
     </div>
   </div>
@@ -167,13 +171,6 @@
   <button id="playMusicBtn" class="hidden" aria-label="Play music" title="Play music">▶</button>
 </div>
 
-<!-- orn:
-
-<div class="ornament" style="left: 320px; top: 180px;">
-  <img src="1.png" alt="Ornament 1" />
-</div>
-
--->
 
 <canvas id="snowCanvas" aria-hidden="true"></canvas>
 
