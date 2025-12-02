@@ -17,29 +17,48 @@
   body {
     margin: 0;
     font-family: system-ui, sans-serif;
-    background: linear-gradient(180deg, #06361a 0%, #02140a 60%, #030617 100%);
-    color: #fff8f0;
+    background: linear-gradient(180deg, #82dbff 0%, #bbecff 90%, #ffffff 96%, #ffffff 100%);
+    color: #08321f;
     text-align: center;
+    width: 100%;
     height: 100vh;
+    overflow: hidden;
   }
+
   .container {
-    margin: auto;
-    padding: 12px;
-  }
-  #treeArea {
+    width: 100%;
+    height: 100%;
     position: relative;
+  }
+
+  h1 {
+    position: absolute;
+    top: 12px;
+    right: 24px;
+    color: #ffffff;
+    text-shadow: 0 2px 0 rgba(0,0,0,0.6), 0 6px 20px rgba(0,0,0,0.7);
+    margin: 0;
+    z-index: 5000;
+  }
+
+  /* tree positioned absolute at center-bottom */
+  #treeArea {
+    position: fixed;
+    bottom: 1vh;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5000;
     display: inline-block;
     width: fit-content;
     height: auto;
-    border-radius: 0px;
-    overflow: hidden;
-    background: linear-gradient(180deg, rgba(2,20,10,0.6), rgba(0,0,0,0.25));
-    border: 2px solid #b8860b;
-    margin: 12px auto 0 auto;
+    overflow: visible;
+    background: transparent;
+    border: none;
   }
+
   #treeImage {
-    max-width: 96vw;
-    max-height: 82vh;
+    max-width: 144vw;
+    max-height: 90vh;
     height: auto;
     width: auto;
     object-fit: contain;
@@ -47,6 +66,7 @@
     user-select: none;
     display: block;
   }
+
   .ornament {
     position: absolute;
     width: 55px;
@@ -54,22 +74,14 @@
     pointer-events: none;
     user-select: none;
   }
+
   .ornament img {
     width: 100%;
     height: 100%;
     object-fit: contain;
   }
-  #bgAudio {
-    width: 100%;
-    margin-top: 16px;
-  }
-  .note {
-    opacity: 0.8;
-    font-size: 12px;
-    margin-top: 6px;
-    color: #f3efe0;
-  }
 
+  /* full-screen snow canvas */
   #snowCanvas {
     position: fixed;
     left: 0;
@@ -77,38 +89,58 @@
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: 9999;
-  }
-  h1 {
-    color: #ffd700;
-    text-shadow: 0 2px 0 rgba(0,0,0,0.6), 0 6px 20px rgba(0,0,0,0.4);
-    margin: 8px 0;
+    z-index: 4000;
   }
 
-  .mainRow {
+  /* snow mounds at bottom */
+  #snowMounts {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 300px;
+    pointer-events: none;
+    z-index: 3500;
+  }
+
+  #snowMounts svg {
+    width: 100%;
+    height: 100%;
     display: block;
-    margin: 0 auto;
-    text-align: center;
   }
-  @media (min-width: 900px) {
-    .mainRow { display: inline-flex; align-items: flex-start; gap: 18px; }
-    .mainRow > #treeArea { flex: none; }
-    .mainRow > #activityLog { flex: none; width: 320px; }
+
+  /* white background below mounts */
+  #snowBg {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 300px;
+    background: white;
+    pointer-events: none;
+    z-index: 2900;
   }
+
+  /* hide activity log and other elements for now */
+  .mainRow { display: none; }
+  #bgAudio { display: none; }
+  #playMusicBtn { display: none; }
 
   #activityLog {
     margin: 12px auto 6px auto;
     max-width: 900px;
-    width: min(96vw, 900px);
-    background: rgba(255,255,255,0.03);
+    width: min(96vw, 500px);
+    background: rgba(0, 0, 0, 0.2);
     border-left: 4px solid #ffd700;
     color: #fff8f0;
     padding: 8px 12px;
-    font-size: 13px;
+    font-size: 2vh;
     text-align: left;
+    left: 12px;
     border-radius: 6px;
-    position: relative;
+    position: absolute;
     z-index: 10001; 
+    font: 14px monospace;
   }
   #activityLog h2 {
     margin: 0 0 6px 0;
@@ -120,26 +152,7 @@
   .log-entry:last-child { border-bottom: none; }
   .log-date { color: #ffd700; font-weight: 600; margin-right: 4px; }
 
-  #playMusicBtn {
-    position: fixed;
-    right: 18px;
-    bottom: 18px;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: linear-gradient(180deg,#ffd700,#e0a800);
-    color: #0b2310;
-    border: none;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    cursor: pointer;
-    z-index: 11000;
-    pointer-events: auto; 
-  }
-  #playMusicBtn.hidden { display: none; }
+
 </style>
 </head>
 <body>
@@ -147,22 +160,24 @@
 <div class="container">
   <h1>🎄 #chrismtas-tree-5</h1>
 
-  <div class="mainRow">
-    <div id="treeArea">
-      <img id="treeImage" src="tree.png" alt="Christmas Tree" />
-
-      <div class="ornament" style="left: 22%; top: 78%; width: 17%; height: 17%;">
-        <img src="./ornaments/1.png" alt="Ornament 1" />
-      </div>
+  <div id="treeArea">
+    <img id="treeImage" src="tree.png" alt="Christmas Tree" />
+    <div class="ornament" style="left: 22%; top: 78%; width: 17%; height: 17%;">
+      <img src="./ornaments/1.png" alt="Ornament 1" />
     </div>
-
-    <div id="activityLog" aria-live="polite">
-      <h2>Activity Log</h2>
-      <ul class="log-list">
-        <li class="log-entry"><span class="log-date">1/12/2025 4:10 PM</span> -  Me petting my cat on the #chrismtas-tree-5</li>
-        <li class="log-entry"><span class="log-date">1/12/2025 1:15 AM</span> -  The Christmas tree is here!</li>
-      </ul>
+    <div class="ornament" style="left: 37%; top: 78%; width: 17%; height: 14%; rotate: 20deg;">
+      <img src="./ornaments/2.png" alt="Ornament 1" />
     </div>
+  </div>
+
+  <div id="activityLog" aria-live="polite">
+    <h2>Activity Log</h2>
+    <ul class="log-list">
+      <li class="log-entry"><span class="log-date">1/12/2025 22:31</span> -  Website redesign</li>
+      <li class="log-entry"><span class="log-date">1/12/2025 21:52</span> -  Dante get the golden bough dante</li>
+      <li class="log-entry"><span class="log-date">1/12/2025 16:10</span> -  Me petting my cat on the #chrismtas-tree-5</li>
+      <li class="log-entry"><span class="log-date">1/12/2025 01:15</span> -  The Christmas tree is here!</li>
+    </ul>
   </div>
 
   <audio id="bgAudio" autoplay loop playsinline preload="auto">
@@ -173,6 +188,9 @@
 
 
 <canvas id="snowCanvas" aria-hidden="true"></canvas>
+
+
+
 
 <script>
 (function(){
@@ -190,7 +208,7 @@
   const particles = [];
   function initParticles(){
     particles.length = 0;
-    const count = Math.min(250, Math.floor(W * H / 20000));
+    const count = Math.min(250, Math.floor(W * H / 20000)) * 10;
     for(let i=0;i<count;i++) particles.push(createParticle());
   }
   function createParticle(){
@@ -268,6 +286,11 @@
     });
   }
 })();
+</script>
+
+<script>
+// Simple positioning - tree is fixed absolute, mounts are fixed at bottom
+// No complex JS needed anymore
 </script>
 
 </body>
