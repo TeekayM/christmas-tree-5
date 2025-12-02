@@ -17,7 +17,7 @@
   body {
     margin: 0;
     font-family: system-ui, sans-serif;
-    background: linear-gradient(180deg, #82dbff 0%, #bbecff 90%, #ffffff 96%, #ffffff 100%);
+    background: linear-gradient(180deg, #0d144d 0%, #0d144d 90%, #ffffff 92%, #ffffff 100%);
     color: #08321f;
     text-align: center;
     width: 100%;
@@ -39,12 +39,13 @@
     text-shadow: 0 2px 0 rgba(0,0,0,0.6), 0 6px 20px rgba(0,0,0,0.7);
     margin: 0;
     z-index: 5000;
+    font: 28px monospace;
   }
 
   /* tree positioned absolute at center-bottom */
   #treeArea {
     position: fixed;
-    bottom: 1vh;
+    bottom: 10vh;
     left: 50%;
     transform: translateX(-50%);
     z-index: 5000;
@@ -71,14 +72,51 @@
     position: absolute;
     width: 55px;
     height: 55px;
-    pointer-events: none;
+    pointer-events: auto;
     user-select: none;
+    cursor: pointer;
   }
 
   .ornament img {
     width: 100%;
     height: 100%;
     object-fit: contain;
+    pointer-events: none;
+  }
+
+  /* ornament info tooltip */
+  #ornamentTooltip {
+    position: absolute;
+    z-index: 10005;
+    background: rgba(0,0,0,0.9);
+    color: #fff;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font: 13px/1.2 monospace;
+    max-width: 220px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+    transform-origin: center bottom;
+    transition: opacity 160ms ease, transform 160ms ease;
+    opacity: 0;
+    pointer-events: none;
+  }
+  #ornamentTooltip.show {
+    opacity: 1;
+    transform: translateY(-6px) scale(1);
+    pointer-events: none;
+  }
+  #ornamentTooltip .date { color: #a98aff; font-weight: 600; display: block; margin-bottom: 6px; }
+  #ornamentTooltip:after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -6px;
+    width: 12px;
+    height: 12px;
+    background: rgba(0,0,0,0.9);
+    transform: translateX(-50%) rotate(45deg);
+    border-bottom-left-radius: 2px;
   }
 
   /* full-screen snow canvas */
@@ -98,7 +136,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    height: 300px;
+    height: min(36vh, 340px);
     pointer-events: none;
     z-index: 3500;
   }
@@ -109,48 +147,72 @@
     display: block;
   }
 
-  /* white background below mounts */
-  #snowBg {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 300px;
-    background: white;
-    pointer-events: none;
-    z-index: 2900;
-  }
+  /* removed flat white background; SVG will provide the white field */
+  #snowBg { display: none; }
 
-  /* hide activity log and other elements for now */
+  /* hide activity log an d other elements for now */
   .mainRow { display: none; }
   #bgAudio { display: none; }
   #playMusicBtn { display: none; }
-
   #activityLog {
     margin: 12px auto 6px auto;
     max-width: 900px;
     width: min(96vw, 500px);
     background: rgba(0, 0, 0, 0.2);
-    border-left: 4px solid #ffd700;
+    border-left: 4px solid #9774f5;
     color: #fff8f0;
     padding: 8px 12px;
     font-size: 2vh;
     text-align: left;
     left: 12px;
+    top: 57px;
     border-radius: 6px;
     position: absolute;
     z-index: 10001; 
     font: 14px monospace;
+    transition: transform 240ms ease, opacity 200ms ease, visibility 200ms;
+    transform-origin: left top;
   }
+  /* collapsed (hidden) by default */
+  #activityLog.collapsed {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.995);
+    visibility: hidden;
+    pointer-events: none;
+  }
+  /* visible state */
+  #activityLog.expanded {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  /* toggle button */
+  #activityToggleBtn {
+    position: fixed;
+    left: 12px;
+    top: 12px;
+    z-index: 10002;
+    background: rgba(0,0,0,0.5);
+    color: #fff8f0;
+    border: none;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font: 14px monospace;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+  }
+  #activityToggleBtn:focus { outline: 2px solid #9774f5; outline-offset: 2px; }
   #activityLog h2 {
     margin: 0 0 6px 0;
-    color: #ffe08a;
-    font-size: 14px;
+    color: #a98aff;
+    font-size: 24px;
   }
   .log-list { list-style: none; padding: 0; margin: 0; }
   .log-entry { padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.04); }
   .log-entry:last-child { border-bottom: none; }
-  .log-date { color: #ffd700; font-weight: 600; margin-right: 4px; }
+  .log-date { color: #9774f5; font-weight: 600; margin-right: 4px; }
 
 
 </style>
@@ -159,22 +221,23 @@
 
 <div class="container">
   <h1>🎄 #chrismtas-tree-5</h1>
+    <button id="activityToggleBtn" aria-expanded="false" aria-controls="activityLog" title="Show activity log">Activity</button>
 
   <div id="treeArea">
     <img id="treeImage" src="tree.png" alt="Christmas Tree" />
-    <div class="ornament" style="left: 22%; top: 78%; width: 17%; height: 17%;">
+    <div class="ornament" tabindex="0" data-date="1/12/2025" data-desc="Me petting my cat on the #chrismtas-tree-5" style="left: 22%; top: 78%; width: 17%; height: 17%;">
       <img src="./ornaments/1.png" alt="Ornament 1" />
     </div>
-    <div class="ornament" style="left: 37%; top: 78%; width: 17%; height: 14%; rotate: 20deg;">
-      <img src="./ornaments/2.png" alt="Ornament 1" />
+    <div class="ornament" tabindex="0" data-date="2/12/2025" data-desc="Dante get the golden bough dante" style="left: 37%; top: 78%; width: 17%; height: 14%; rotate: 20deg;">
+      <img src="./ornaments/2.png" alt="Ornament 2" />
     </div>
   </div>
 
-  <div id="activityLog" aria-live="polite">
+  <div id="activityLog" class="collapsed" aria-live="polite" hidden>
     <h2>Activity Log</h2>
     <ul class="log-list">
-      <li class="log-entry"><span class="log-date">1/12/2025 22:31</span> -  Website redesign</li>
-      <li class="log-entry"><span class="log-date">1/12/2025 21:52</span> -  Dante get the golden bough dante</li>
+      <li class="log-entry"><span class="log-date">2/12/2025 22:31</span> -  Website redesign</li>
+      <li class="log-entry"><span class="log-date">2/12/2025 21:52</span> -  Dante get the golden bough dante</li>
       <li class="log-entry"><span class="log-date">1/12/2025 16:10</span> -  Me petting my cat on the #chrismtas-tree-5</li>
       <li class="log-entry"><span class="log-date">1/12/2025 01:15</span> -  The Christmas tree is here!</li>
     </ul>
@@ -191,6 +254,16 @@
 
 
 
+
+<!-- Full-width snow field (SVG) with curved top so it reads as mounds, not a rectangle -->
+<div id="snowMounts" aria-hidden="true">
+  <svg viewBox="0 0 1200 360" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- large white field with curved top (primary) -->
+    <path d="M0,140 C120,100 240,170 380,140 C520,110 660,170 820,140 C980,110 1100,150 1200,140 L1200,360 L0,360 Z" fill="#ffffff" />
+    <!-- subtle back contour for depth -->
+    <path d="M0,170 C150,130 300,190 450,160 C600,130 750,190 900,160 C1050,130 1200,170 1200,170 L1200,360 L0,360 Z" fill="#f3f8ff" opacity="0.95" />
+  </svg>
+</div>
 
 <script>
 (function(){
@@ -289,8 +362,104 @@
 </script>
 
 <script>
+// Activity log toggle behavior
+(function(){
+  const toggle = document.getElementById('activityToggleBtn');
+  const log = document.getElementById('activityLog');
+  if(!toggle || !log) return;
+
+  function show(){
+    log.classList.remove('collapsed');
+    log.classList.add('expanded');
+    log.hidden = false;
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.textContent = 'Hide activity';
+  }
+  function hide(){
+    log.classList.remove('expanded');
+    log.classList.add('collapsed');
+    log.hidden = true;
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.textContent = 'Activity';
+  }
+
+  // ensure it's hidden by default
+  hide();
+
+  toggle.addEventListener('click', function(e){
+    e.stopPropagation();
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    if(expanded) hide(); else show();
+  });
+})();
+</script>
+
+<script>
 // Simple positioning - tree is fixed absolute, mounts are fixed at bottom
 // No complex JS needed anymore
+</script>
+
+<!-- Ornament info tooltip script -->
+<script>
+(function(){
+  // create tooltip element
+  const tip = document.createElement('div');
+  tip.id = 'ornamentTooltip';
+  tip.setAttribute('role','dialog');
+  tip.setAttribute('aria-hidden','true');
+  tip.innerHTML = '<span class="date"></span><span class="desc"></span>';
+  document.body.appendChild(tip);
+
+  let current = null;
+
+  function showFor(el){
+    const date = el.getAttribute('data-date') || 'Unknown date';
+    const desc = el.getAttribute('data-desc') || 'No description.';
+    tip.querySelector('.date').textContent = date;
+    tip.querySelector('.desc').textContent = desc;
+
+    // place tooltip above element; ensure measurement after rendering
+    tip.style.left = '0px';
+    tip.style.top = '-9999px';
+    tip.classList.add('show');
+    const rect = el.getBoundingClientRect();
+    const tipRect = tip.getBoundingClientRect();
+    const left = rect.left + (rect.width/2) - (Math.min(tipRect.width, 220)/2);
+    const top = rect.top - 10 - tipRect.height; // 10px gap
+
+    tip.style.left = Math.max(6, left) + 'px';
+    tip.style.top = Math.max(6, top) + 'px';
+    tip.setAttribute('aria-hidden','false');
+    current = el;
+  }
+
+  function hide(){
+    tip.classList.remove('show');
+    tip.setAttribute('aria-hidden','true');
+    current = null;
+  }
+
+  // Show on hover (pointerenter) and on keyboard focus; hide on leave/blur
+  const ornaments = document.querySelectorAll('.ornament');
+  ornaments.forEach(el => {
+    el.addEventListener('pointerenter', () => showFor(el));
+    el.addEventListener('pointerleave', () => hide());
+    el.addEventListener('focus', () => showFor(el));
+    el.addEventListener('blur', () => hide());
+    // keep click as no-op to avoid accidental toggles on touch
+    el.addEventListener('click', (e) => { e.stopPropagation(); });
+  });
+
+  // keyboard: allow Escape to close
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape') hide();
+  });
+
+  // reposition on resize/scroll
+  window.addEventListener('resize', function(){ if(current) showFor(current); });
+  window.addEventListener('scroll', function(){ if(current) showFor(current); }, true);
+
+})();
 </script>
 
 </body>
