@@ -217,6 +217,50 @@
   .log-entry:last-child { border-bottom: none; }
   .log-date { color: #9774f5; font-weight: 600; margin-right: 4px; }
 
+  /* ----------------------- */
+  /* Ornament 25: glow + sparkles ⚡️ */
+  /* ----------------------- */
+  .ornament.sparkle { z-index: 6000; }
+  .ornament.sparkle img {
+    transition: filter 300ms ease, transform 300ms ease;
+    filter: drop-shadow(0 0 8px rgba(255,230,170,0.95)) drop-shadow(0 0 18px rgba(75, 78, 255, 0.85));
+    transform: translateZ(0);
+  }
+
+  /* removed pulsing pseudo-element to avoid distracting pulsing circles */
+
+  /* sparkle dots */
+  .ornament .sparkle-dot {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #fff 0%, #ffe6a6 40%, rgba(255,200,255,0.95) 70%, rgba(255,255,255,0));
+    box-shadow: 0 0 10px rgba(255,200,255,0.9), 0 0 6px rgba(255,255,255,0.6);
+    pointer-events: none;
+    transform: translate(-50%,-50%) scale(0.2);
+    opacity: 1;
+    animation: ornamentSparkle 900ms cubic-bezier(.2,.9,.2,1) forwards;
+  }
+  @keyframes ornamentSparkle {
+    0% { transform: translate(-50%,-50%) scale(0.2); opacity: 1; }
+    60% { transform: translate(-50%,-80%) scale(1); opacity: 0.95; }
+    100% { transform: translate(-50%,-150%) scale(0.6); opacity: 0; }
+  }
+
+  /* paused state (when toggled) */
+  .ornament.sparkle--paused .sparkle-dot { animation-play-state: paused; }
+
+  /* ----------------------- */
+  /* String lights (topper removed) */
+  /* ----------------------- */
+
+  #treeLights { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:6400; }
+  .treeLight { position:absolute; width:10px; height:10px; border-radius:50%; transform:translate(-50%,-50%); box-shadow:0 0 8px currentColor; opacity:0.9; animation: lightFlicker 2.5s infinite; }
+  @keyframes lightFlicker { 0%{opacity:0.5; transform:translate(-50%,-50%) scale(0.8);} 50%{opacity:1; transform:translate(-50%,-52%) scale(1);} 100%{opacity:0.6; transform:translate(-50%,-50%) scale(0.9);} }
+
+  /* gentle purple snow highlight overlay */
+  .snowHighlight { position:fixed; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:3600; mix-blend-mode: screen; background: radial-gradient(ellipse at 20% 8%, rgba(138,72,255,0.03) 0%, transparent 18%); }
 
 </style>
 </head>
@@ -301,6 +345,9 @@
     <div class="ornament" tabindex="0" data-date="24/12/2025" data-desc="we are charlie kirkkk!!! we carry the flame" style="left: 53%; top: 24%; width: 12%; height: 12%; rotate: 0deg;">
       <img src="./ornaments/24.png" alt="Ornament 24" />
     </div>
+    <div class="ornament" tabindex="0" data-date="25/12/2025" data-desc="peak story" style="left: 39%; top: 5%; width: 23%; height: 23%; rotate: 0deg;">
+      <img src="./ornaments/25.png" alt="Ornament 25" />
+    </div>
   </div>
 
   <div id="activityLog" class="collapsed" aria-live="polite" hidden>
@@ -343,7 +390,6 @@
         <circle cx="82" cy="50" r="48" fill="black" />
       </mask>
     </defs>
-    <circle cx="50" cy="50" r="48" fill="#f5f5dc" mask="url(#crescentMask)" />
   </svg>
 </div>
 
@@ -382,13 +428,16 @@
     for(let i=0;i<count;i++) particles.push(createParticle());
   }
   function createParticle(){
+    const isGlow = Math.random() < 0.10; // ~5% chance to be a purple glowing flake
     return {
       x: Math.random() * W,
       y: Math.random() * H,
-      r: 1 + Math.random() * 2.5,
+      r: isGlow ? (2 + Math.random() * 3) : (1 + Math.random() * 2.5),
       vx: (Math.random() * 0.6) - 0.3,
       vy: 0.5 + Math.random() * 1.2,
-      a: 0.6 + Math.random() * 0.4
+      a: isGlow ? (0.7 + Math.random() * 0.25) : (0.6 + Math.random() * 0.4),
+      glow: isGlow,
+      color: isGlow ? `rgba(185,116,255,${0.78 + Math.random()*0.18})` : null
     };
   }
   initParticles();
@@ -405,13 +454,31 @@
     for(let p of particles){
       p.x += p.vx;
       p.y += p.vy;
-      if(p.y > H + 10){ p.y = -10; p.x = Math.random() * W; }
+      if(p.y > H + 10){ p.y = -10; p.x = Math.random() * W; p.r = 1 + Math.random() * 2.5; p.glow = Math.random() < 0.05; }
       if(p.x > W + 10) p.x = -10;
       if(p.x < -10) p.x = W + 10;
+
       ctx.beginPath();
-      ctx.fillStyle = 'rgba(255,255,255,' + p.a + ')';
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fill();
+      if(p.glow){
+        // purple glowing snowflake
+        ctx.fillStyle = p.color;
+        ctx.shadowBlur = 12 + Math.random()*10;
+        ctx.shadowColor = 'rgba(160,110,255,0.9)';
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+
+        // small bright core
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.beginPath();
+        ctx.arc(p.x - p.r*0.15, p.y - p.r*0.15, Math.max(0.8, p.r*0.45), 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.fillStyle = 'rgba(255,255,255,' + p.a + ')';
+        ctx.shadowBlur = 0;
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
     requestAnimationFrame(step);
   }
@@ -556,6 +623,107 @@
   window.addEventListener('resize', function(){ if(current) showFor(current); });
   window.addEventListener('scroll', function(){ if(current) showFor(current); }, true);
 
+})();
+</script>
+
+<script>
+(function(){
+  const ornament = document.querySelector('[data-date="25/12/2025"]');
+  if(!ornament) return;
+  // enable heavy glow visuals
+  ornament.classList.add('sparkle');
+
+  // create ephemeral sparkle dots
+  function createDot(){
+    const dot = document.createElement('span');
+    dot.className = 'sparkle-dot';
+    const x = Math.random() * 100;
+    const y = Math.random() * 100;
+    dot.style.left = x + '%';
+    dot.style.top = y + '%';
+    ornament.appendChild(dot);
+    setTimeout(()=> dot.remove(), 1200);
+  }
+
+  // Passive gentle sparkles: subtle, automatic, non-intrusive
+  function createPassiveDot(){
+    const dot = document.createElement('span');
+    dot.className = 'sparkle-dot';
+    // softer, slightly smaller appearance
+    dot.style.width = '6px';
+    dot.style.height = '6px';
+    dot.style.boxShadow = '0 0 6px rgba(255,200,255,0.7), 0 0 4px rgba(255,255,255,0.45)';
+    // position inside the ornament's visible area
+    const x = 20 + Math.random() * 60;
+    const y = 30 + Math.random() * 40;
+    dot.style.left = x + '%';
+    dot.style.top = y + '%';
+    // shorter lifetime for passive dots
+    ornament.appendChild(dot);
+    setTimeout(()=> dot.remove(), 1000);
+  }
+
+  // start passive interval (gentle, occasional)
+  const passiveInterval = setInterval(()=>{
+    if(ornament.classList.contains('sparkle--paused')) return;
+    const chance = Math.random();
+    if(chance < 0.35) return; // only some ticks
+    const cnt = chance > 0.96 ? 2 : 1;
+    for(let i=0;i<cnt;i++) setTimeout(createPassiveDot, i*100 + Math.random()*200);
+  }, 2600 + Math.random()*1200);
+
+  // click toggles pause/resume (handy to silence if wanted)
+  ornament.addEventListener('click', function(e){
+    e.stopPropagation();
+    ornament.classList.toggle('sparkle--paused');
+  });
+
+  // Not claiming interactive role now
+  ornament.removeAttribute('role');
+  ornament.removeAttribute('aria-pressed');
+
+})();
+</script>
+
+<script>
+(function(){
+  const treeArea = document.getElementById('treeArea');
+  const treeImage = document.getElementById('treeImage');
+  if(!treeArea || !treeImage) return;
+
+  // lights
+  const colors = ['#ffd166','#ff6b6b','#6bf0ff','#d48bff'];
+  const lights = document.createElement('div'); lights.id = 'treeLights';
+  for(let i=0;i<14;i++){
+    const l = document.createElement('span'); l.className = 'treeLight';
+    // spread along a cone shape
+    const t = 18 + (i/13)*70 + (Math.random()*6-3); // top percent
+    const spread = (Math.sin((i/13)*Math.PI) * 26) + (Math.random()*8-4);
+    const left = 50 + (i % 2 === 0 ? -1 : 1) * spread + (Math.random()*6-3);
+    l.style.left = left + '%';
+    l.style.top = t + '%';
+    l.style.background = colors[i % colors.length];
+    l.style.animationDelay = (Math.random()*2) + 's';
+    const size = 7 + Math.random()*10;
+    l.style.width = l.style.height = size + 'px';
+    lights.appendChild(l);
+  }
+  treeArea.appendChild(lights);
+
+  // subtle purple highlight overlay
+  const overlay = document.createElement('div'); overlay.className = 'snowHighlight';
+  document.body.appendChild(overlay);
+
+  function positionStar(){
+    const rect = treeImage.getBoundingClientRect();
+    const left = rect.left + rect.width * 0.5;
+    const top = rect.top + rect.height * 0.04;
+    star.style.left = left + 'px';
+    star.style.top = top + 'px';
+  }
+  positionStar();
+  window.addEventListener('resize', positionStar);
+  window.addEventListener('load', positionStar);
 })();
 </script>
 
